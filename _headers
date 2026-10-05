@@ -40,6 +40,9 @@
 /favicon.ico
   Content-Type: image/x-icon
 
+/favicon.svg
+  Content-Type: image/svg+xml
+
 /favicon*.png
   Content-Type: image/png
 

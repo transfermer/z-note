@@ -6,16 +6,16 @@ Disallow: /login
 Disallow: /install
 Disallow: /share/
 
-# 允许搜索引擎访问公共分享页面
+# 允許搜尋引擎訪問公共分享頁面
 Allow: /share/*/view
 
-# 站点地图
+# 站點地圖
 Sitemap: /sitemap.xml
 
-# 爬取延迟
+# 爬取延遲
 Crawl-delay: 1
 
-# 特定搜索引擎规则
+# 特定搜尋引擎規則
 User-agent: Googlebot
 Allow: /
 Disallow: /api/

@@ -1,8 +1,8 @@
-// Cloudflare Pages Functions 中间件
+// Cloudflare Pages Functions 中介軟體
 export async function onRequest(context: any) {
   const { request, env, next } = context
 
-  // 设置全局环境变量，供D1适配器使用
+  // 設定全域性環境變數，供D1介面卡使用
   if (env.DB) {
     globalThis.DB = env.DB
     globalThis.CF_PAGES = true

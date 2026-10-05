@@ -32,7 +32,7 @@ export function setSetting(key: string, value: string) {
         updated_at=excluded.updated_at
     `).run(key, value, Date.now())
     
-    // 更新缓存
+    // 更新快取
     settingsCache[key] = value
   } catch (error) {
     console.error('Error setting value:', error)

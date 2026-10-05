@@ -24,15 +24,15 @@ const app = new Hono()
 
 /* Installation */
 
-// 检查是否已安装
+// 檢查是否已安裝
 function isInstalled(): boolean {
   const installed = getSetting('system.installed') === '1'
   return installed
 }
 
-// 安装检查中间件
+// 安裝檢查中介軟體
 const requireInstallation: MiddlewareHandler = async (c, next) => {
-  // 跳过安装相关的API
+  // 跳過安裝相關的API
   if (c.req.path.startsWith('/api/install') || c.req.path === '/api/settings/public') {
     await next()
     return
@@ -44,7 +44,7 @@ const requireInstallation: MiddlewareHandler = async (c, next) => {
   await next()
 }
 
-// 防止重复安装中间件
+// 防止重複安裝中介軟體
 const preventReinstall: MiddlewareHandler = async (c, next) => {
   if (isInstalled()) {
     return c.json({ error: 'ALREADY_INSTALLED' }, 400)
@@ -55,7 +55,7 @@ const preventReinstall: MiddlewareHandler = async (c, next) => {
 app.post('/api/install', preventReinstall, async c => {
   const { siteTitle, adminEmail, adminPassword } = await c.req.json()
 
-  // 验证输入
+  // 驗證輸入
   if (!siteTitle?.trim()) {
     return c.json({ error: 'Site title is required' }, 400)
   }
@@ -69,10 +69,10 @@ app.post('/api/install', preventReinstall, async c => {
   }
 
   try {
-    // 生成密码哈希
+    // 生成密碼雜湊
     const passwordHash = await bcrypt.hash(adminPassword, 10)
 
-    // 设置基本配置
+    // 設定基本配置
     setSetting('site.title', siteTitle.trim())
     setSetting('site.logo', '/logo.png')
     setSetting('site.favicon', '/favicon.png')
@@ -81,7 +81,7 @@ app.post('/api/install', preventReinstall, async c => {
     setSetting('admin.email', adminEmail.trim())
     setSetting('admin.password_hash', passwordHash)
     
-    // 设置默认的登录配置
+    // 設定預設的登入配置
     setSetting('login.enable_captcha', '0')
     setSetting('login.enable_turnstile', '0')
     setSetting('login.turnstile_site_key', '')
@@ -90,19 +90,19 @@ app.post('/api/install', preventReinstall, async c => {
     setSetting('github.client_id', '')
     setSetting('github.client_secret', '')
     
-    // 设置默认的锁屏配置
+    // 設定預設的鎖屏配置
     setSetting('lockscreen.enabled', '0')
     setSetting('lockscreen.password', '')
     
-    // 设置默认的WebDAV配置
+    // 設定預設的WebDAV配置
     setSetting('webdav.url', '')
     setSetting('webdav.user', '')
     setSetting('webdav.password', '')
     
-    // 设置默认的上传配置
-    setSetting('upload.max_file_size', '10') // 默认10MB
+    // 設定預設的上傳配置
+    setSetting('upload.max_file_size', '10') // 預設10MB
     
-    // 标记为已安装
+    // 標記為已安裝
     setSetting('system.installed', '1')
 
     return c.json({ success: true, message: 'Installation completed' })
@@ -111,7 +111,7 @@ app.post('/api/install', preventReinstall, async c => {
   }
 })
 
-// 获取安装状态
+// 獲取安裝狀態
 app.get('/api/install/status', c => {
   const installed = isInstalled()
   return c.json({ installed })
@@ -125,7 +125,7 @@ app.get('/api/captcha', c => {
     background: '#f4f4f5'
   })
 
-  // 保存到 Cookie（5 分钟）
+  // 儲存到 Cookie（5 分鐘）
   setCookie(c, 'captcha', captcha.text.toLowerCase(), {
     httpOnly: true,
     maxAge: 300,
@@ -137,6 +137,6 @@ app.get('/api/captcha', c => {
   })
 })
 
-// ... (server/index.ts 内容已归档到 functions/server/index.ts)
+// ... (server/index.ts 內容已歸檔到 functions/server/index.ts)
 
 export default app

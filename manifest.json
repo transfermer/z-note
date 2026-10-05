@@ -1,14 +1,14 @@
 {
-  "name": "XA Note - 智能笔记管理系统",
-  "short_name": "XA Note",
-  "description": "现代化的智能笔记管理系统，支持Markdown编辑、分类管理、标签系统、全文搜索等功能",
+  "name": "Z Note - 智慧筆記管理系統",
+  "short_name": "Z Note",
+  "description": "現代化的智慧筆記管理系統，支援Markdown編輯、分類管理、標籤系統、全文搜尋等功能",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",
   "orientation": "portrait-primary",
   "scope": "/",
-  "lang": "zh-CN",
+  "lang": "zh-TW",
   "dir": "ltr",
   "categories": ["productivity", "utilities", "education"],
   "icons": [
@@ -46,21 +46,21 @@
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "XA Note 桌面版界面"
+      "label": "Z Note 桌面版介面"
     },
     {
       "src": "/screenshot-mobile.png",
       "sizes": "390x844",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "XA Note 移动版界面"
+      "label": "Z Note 移動版介面"
     }
   ],
   "shortcuts": [
     {
-      "name": "新建笔记",
+      "name": "新建筆記",
       "short_name": "新建",
-      "description": "快速创建新笔记",
+      "description": "快速建立新筆記",
       "url": "/?action=new",
       "icons": [
         {
@@ -70,9 +70,9 @@
       ]
     },
     {
-      "name": "搜索笔记",
-      "short_name": "搜索",
-      "description": "搜索现有笔记",
+      "name": "搜尋筆記",
+      "short_name": "搜尋",
+      "description": "搜尋現有筆記",
       "url": "/?action=search",
       "icons": [
         {

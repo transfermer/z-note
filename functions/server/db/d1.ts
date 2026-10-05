@@ -5,27 +5,27 @@ export class D1Adapter implements D1DatabaseAdapter {
   private db: any = null
 
   constructor() {
-    // 在Cloudflare Pages环境中，D1数据库通过env.DB访问
-    // 这里我们先设置为null，在initialize中获取
+    // 在Cloudflare Pages環境中，D1資料庫透過env.DB訪問
+    // 這裡我們先設定為null，在initialize中獲取
   }
 
   async initialize(): Promise<void> {
-    // 在Cloudflare Pages中，数据库绑定通过环境变量获取
-    // 这需要在请求处理时传入
+    // 在Cloudflare Pages中，資料庫繫結透過環境變數獲取
+    // 這需要在請求處理時傳入
     if (typeof globalThis !== 'undefined' && (globalThis as any).DB) {
       this.db = (globalThis as any).DB
     } else {
       throw new Error('D1 database binding not found. Make sure DB is bound in wrangler.toml')
     }
 
-    // 初始化数据库结构
+    // 初始化資料庫結構
     await this.initializeSchema()
     
     console.log('D1 database initialized')
   }
 
   private async initializeSchema(): Promise<void> {
-    // 使用共享的数据库schema
+    // 使用共享的資料庫schema
     const statements = DATABASE_SCHEMA.split(';').filter(stmt => stmt.trim())
     for (const stmt of statements) {
       if (stmt.trim()) {
@@ -33,18 +33,18 @@ export class D1Adapter implements D1DatabaseAdapter {
       }
     }
 
-    // 检查是否是新数据库
+    // 檢查是否是新資料庫
     const existingSettings = await this.db.prepare('SELECT COUNT(*) as count FROM settings').first()
     const isNewDatabase = existingSettings.count === 0
 
-    // 使用共享的默认数据初始化函数
+    // 使用共享的預設資料初始化函式
     await initializeDefaultData(this, isNewDatabase)
   }
 
   async exec(sql: string): Promise<void> {
     if (!this.db) throw new Error('Database not initialized')
     
-    // D1不支持exec，需要分别执行每个语句
+    // D1不支援exec，需要分別執行每個語句
     const statements = sql.split(';').filter(stmt => stmt.trim())
     for (const stmt of statements) {
       if (stmt.trim()) {
@@ -101,11 +101,11 @@ export class D1Adapter implements D1DatabaseAdapter {
   }
 
   async close(): Promise<void> {
-    // D1不需要显式关闭连接
+    // D1不需要顯式關閉連線
     this.db = null
   }
 
-  // 设置D1数据库实例（在请求处理时调用）
+  // 設定D1資料庫例項（在請求處理時呼叫）
   setDatabase(db: any): void {
     this.db = db
   }

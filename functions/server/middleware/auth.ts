@@ -10,16 +10,16 @@ export const requireAuth: MiddlewareHandler = async (c, next) => {
     return c.json({ error: 'UNAUTHORIZED' }, 401)
   }
 
-  // 验证JWT token
+  // 驗證JWT token
   const payload = await verifyToken(token) as any
   if (!payload) {
-    // 清除无效的token
+    // 清除無效的token
     deleteCookie(c, 'auth_token', { path: '/' })
     deleteCookie(c, 'session_id', { path: '/' })
     return c.json({ error: 'INVALID_TOKEN' }, 401)
   }
 
-  // 将用户信息添加到上下文中
+  // 將使用者資訊新增到上下文中
   c.set('user', payload)
   
   await next()

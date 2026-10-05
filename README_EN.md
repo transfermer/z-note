@@ -1,8 +1,8 @@
 [中文](README.md) | Endlish
 
-# XA Note
+# Z Note
 
-XA Note is a **lightweight, fully self-hosted personal note-taking system**, designed for users who prioritize **privacy, security, and full control**. You deploy and manage it entirely on your own infrastructure. It supports Markdown editing, category management, tagging, and full-text search—offering a smooth writing experience and clear knowledge organization.
+Z Note is a **lightweight, fully self-hosted personal note-taking system**, designed for users who prioritize **privacy, security, and full control**. You deploy and manage it entirely on your own infrastructure. It supports Markdown editing, category management, tagging, and full-text search—offering a smooth writing experience and clear knowledge organization.
 
 Author's Blog: [https://www.xiaoa.me](https://www.xiaoa.me)
 
@@ -53,12 +53,12 @@ If you find this project helpful, please give it a `Star` ⭐!
 Please fork this repo—and don’t forget to give it a `Star`! ⭐
 
 #### Step 2: Create a D1 Database
-Manually create a D1 database named: `xa-note-db`
+Manually create a D1 database named: `z-note-db`
 
 *Or* create via CLI:
 ```bash
 # Create D1 database
-wrangler d1 create xa-note-db
+wrangler d1 create z-note-db
 ```
 
 #### Step 3: Import Database Schema
@@ -67,7 +67,7 @@ Manually copy and paste the contents of `d1-init.sql` (*6 tables*) into the D1 c
 *Or* import via CLI:
 ```bash
 # Initialize database with schema and default data
-wrangler d1 execute xa-note-db --file=d1-init.sql
+wrangler d1 execute z-note-db --file=d1-init.sql
 ```
 
 #### Step 4: Create the Project
@@ -80,11 +80,11 @@ wrangler d1 execute xa-note-db --file=d1-init.sql
    - **Root directory**: `/` (repository root)
 
 #### Step 5: Configure Environment Bindings (via Dashboard)
-1. Go to **Cloudflare Dashboard** > **Workers & Pages** > **xa-note**
+1. Go to **Cloudflare Dashboard** > **Workers & Pages** > **z-note**
 2. Navigate to **Settings** > **Bindings**
 3. Add a **D1 Database** binding:
    - **Variable name**: `DB`
-   - **D1 Database**: `xa-note-db`
+   - **D1 Database**: `z-note-db`
 4. Go to **Deployments** > **All deployments**, find the latest deployment, and click **Redeploy**  
    *(Note: After binding a D1 database, you must trigger a new deployment for the binding to take effect)*
 
@@ -102,19 +102,19 @@ wrangler d1 execute xa-note-db --file=d1-init.sql
 #### **One-Command Deployment**
 ```bash
 # Pull the image
-docker pull awinds/xa-note:latest
+docker pull awinds/z-note:latest
 
-mkdir -p /var/xa-note/data
+mkdir -p /var/z-note/data
 
 # Run container
 docker run -d \
-  --name xa-note \
+  --name z-note \
   -p 9915:9915 \
-  -v /var/xa-note/data:/app/data \
+  -v /var/z-note/data:/app/data \
   -e NODE_ENV=production \
   -e PORT=9915 \
   --restart unless-stopped \
-  awinds/xa-note:latest
+  awinds/z-note:latest
 ```
 
 #### **Docker Compose Deployment**
@@ -123,13 +123,13 @@ docker run -d \
 version: "3.9"
 
 services:
-  xa-note:
-    image: awinds/xa-note:latest
-    container_name: xa-note
+  z-note:
+    image: awinds/z-note:latest
+    container_name: z-note
     ports:
       - "9915:9915"
     volumes:
-      - /var/xa-note/data:/app/data
+      - /var/z-note/data:/app/data
     environment:
       NODE_ENV: production
       PORT: 9915
@@ -158,7 +158,7 @@ This project is licensed under the MIT License.
 
 ## 🙏 Acknowledgements
 
-Thanks to all contributors of the open-source ecosystem. XA Note leverages the following excellent open-source projects:
+Thanks to all contributors of the open-source ecosystem. Z Note leverages the following excellent open-source projects:
 
 - React – UI library  
 - TypeScript – Typed JavaScript  
@@ -169,4 +169,4 @@ Thanks to all contributors of the open-source ecosystem. XA Note leverages the f
 
 ---
 
-**XA Note** – A lightweight, self-hosted note-taking system, your personal knowledge management companion 🚀
+**Z Note** – A lightweight, self-hosted note-taking system, your personal knowledge management companion 🚀

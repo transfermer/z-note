@@ -13,12 +13,12 @@ export interface JWTPayload {
 }
 
 export function generateToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d', issuer: 'xa-note', audience: 'xa-note-users' })
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d', issuer: 'z-note', audience: 'z-note-users' })
 }
 
 export function verifyToken(token: string): JWTPayload | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET, { issuer: 'xa-note', audience: 'xa-note-users' }) as JWTPayload
+    const decoded = jwt.verify(token, JWT_SECRET, { issuer: 'z-note', audience: 'z-note-users' }) as JWTPayload
     return decoded
   } catch (error) {
     return null

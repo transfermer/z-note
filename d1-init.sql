@@ -1,4 +1,4 @@
--- XA Note D1 Database Schema
+-- Z Note D1 Database Schema
 
 -- Create settings table
 CREATE TABLE IF NOT EXISTS settings (

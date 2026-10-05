@@ -1,4 +1,4 @@
-// Cloudflare Pages Functions 完整应用实现
+// Cloudflare Pages Functions 完整應用實現
 import { Hono } from 'hono'
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie'
 import { nanoid } from 'nanoid'
@@ -193,7 +193,7 @@ function createDbWrapper(env: Bindings) {
   }
 }
 
-// 数据库schema
+// 資料庫schema
 const DATABASE_SCHEMA = `
   CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
@@ -249,14 +249,14 @@ const DATABASE_SCHEMA = `
   );
 `;
 
-// 获取当前环境的基础URL
+// 獲取當前環境的基礎URL
 function getBaseUrl(c: any): { apiUrl: string, frontendUrl: string } {
   const host = c.req.header('host') || 'localhost:9915'
   const protocol = c.req.header('x-forwarded-proto') || 
                    c.req.header('cf-visitor') ? 'https' : 
                    (host.includes('localhost') ? 'http' : 'https')
   
-  // Cloudflare Pages环境
+  // Cloudflare Pages環境
   const baseUrl = `${protocol}://${host}`
   return {
     apiUrl: baseUrl,
@@ -264,7 +264,7 @@ function getBaseUrl(c: any): { apiUrl: string, frontendUrl: string } {
   }
 }
 
-// 中间件：初始化数据库
+// 中介軟體：初始化資料庫
 app.use('*', async (c, next) => {
   try {
     const db = createDbWrapper(c.env)
@@ -276,7 +276,7 @@ app.use('*', async (c, next) => {
   }
 })
 
-// 认证中间件
+// 認證中介軟體
 const requireAuth = async (c: any, next: any) => {
   const token = getCookie(c, 'auth_token')
   const sessionId = getCookie(c, 'session_id')
@@ -294,9 +294,9 @@ const requireAuth = async (c: any, next: any) => {
   await next()
 }
 
-// 安装检查中间件
+// 安裝檢查中介軟體
 const requireInstallation = async (c: any, next: any) => {
-  // 跳过安装相关的API
+  // 跳過安裝相關的API
   if (c.req.path.startsWith('/api/install') || c.req.path === '/api/settings/public') {
     await next()
     return
@@ -310,7 +310,7 @@ const requireInstallation = async (c: any, next: any) => {
   await next()
 }
 
-// 防止重复安装中间件
+// 防止重複安裝中介軟體
 const preventReinstall = async (c: any, next: any) => {
   const db = c.get('db') as any
   const isInstalled = await db.isInstalled()
@@ -320,7 +320,7 @@ const preventReinstall = async (c: any, next: any) => {
   await next()
 }
 
-// 健康检查
+// 健康檢查
 app.get('/api/health', (c) => {
   return c.json({ 
     status: 'ok', 
@@ -330,7 +330,7 @@ app.get('/api/health', (c) => {
   })
 })
 
-// 安装状态检查
+// 安裝狀態檢查
 app.get('/api/install/status', async (c) => {
   const db = c.get('db') as any
   try {
@@ -341,7 +341,7 @@ app.get('/api/install/status', async (c) => {
   }
 })
 
-// 日志记录辅助函数
+// 日誌記錄輔助函式
 async function logAction(db: any, params: {
   user_id: string
   action: string
@@ -374,7 +374,7 @@ async function logAction(db: any, params: {
   }
 }
 
-// 获取日志列表
+// 獲取日誌列表
 app.get('/api/logs', requireAuth, async (c) => {
   const db = c.get('db') as any
   
@@ -411,18 +411,18 @@ app.get('/api/logs', requireAuth, async (c) => {
       queryParams.push(parseInt(endDate))
     }
     
-    // 获取总数
+    // 獲取總數
     const totalResult = await db.prepare(`SELECT COUNT(*) as count FROM logs ${whereClause}`).get(...queryParams) as any
     const total = totalResult?.count || 0
     
-    // 获取日志列表
+    // 獲取日誌列表
     const logs = await db.prepare(`
       SELECT * FROM logs ${whereClause} 
       ORDER BY created_at DESC 
       LIMIT ? OFFSET ?
     `).all(...queryParams, limit, offset)
     
-    // 解析details字段
+    // 解析details欄位
     const parsedLogs = logs.map((log: any) => ({
       ...log,
       details: log.details ? JSON.parse(log.details) : null
@@ -441,7 +441,7 @@ app.get('/api/logs', requireAuth, async (c) => {
   }
 })
 
-// 清理旧日志
+// 清理舊日誌
 app.delete('/api/logs/cleanup', requireAuth, async (c) => {
   const db = c.get('db') as any
   
@@ -462,14 +462,14 @@ app.delete('/api/logs/cleanup', requireAuth, async (c) => {
   }
 })
 
-// 安装接口
+// 安裝介面
 app.post('/api/install', preventReinstall, async (c) => {
   const db = c.get('db') as any
   
   try {
     const { siteTitle, adminEmail, adminPassword } = await c.req.json()
 
-    // 验证输入
+    // 驗證輸入
     if (!siteTitle?.trim()) {
       return c.json({ error: 'Site title is required' }, 400)
     }
@@ -482,7 +482,7 @@ app.post('/api/install', preventReinstall, async (c) => {
       return c.json({ error: 'Admin password must be at least 6 characters' }, 400)
     }
 
-    // 初始化数据库结构
+    // 初始化資料庫結構
     const statements = DATABASE_SCHEMA.split(';').filter(stmt => stmt.trim())
     for (const stmt of statements) {
       if (stmt.trim()) {
@@ -490,10 +490,10 @@ app.post('/api/install', preventReinstall, async (c) => {
       }
     }
 
-    // 生成密码哈希
+    // 生成密碼雜湊
     const passwordHash = await hashPassword(adminPassword)
 
-    // 设置基本配置
+    // 設定基本配置
     const settings = [
       ['site.title', siteTitle.trim()],
       ['site.logo', '/logo.png'],
@@ -522,93 +522,93 @@ app.post('/api/install', preventReinstall, async (c) => {
       await db.prepare('INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, ?)').run(key, value, Date.now())
     }
 
-    // 初始化默认分类
-    await db.prepare('INSERT OR REPLACE INTO categories (id, name, created_at) VALUES (?, ?, ?)').run('default', '默认', Date.now())
+    // 初始化預設分類
+    await db.prepare('INSERT OR REPLACE INTO categories (id, name, created_at) VALUES (?, ?, ?)').run('default', '預設', Date.now())
 
-    // 初始化默认笔记
-    const noteContent = `# XA Note
+    // 初始化預設筆記
+    const noteContent = `# Z Note
 
-XA Note 是一款**轻量级、可完全自托管的个人笔记系统**，由您自行部署和管理，专为注重**隐私、安全与可控性**的用户设计。系统支持 Markdown 编辑、分类管理、标签系统和全文检索，提供流畅的写作体验与清晰的知识结构。
+Z Note 是一款**輕量級、可完全自託管的個人筆記系統**，由您自行部署和管理，專為注重**隱私、安全與可控性**的使用者設計。系統支援 Markdown 編輯、分類管理、標籤系統和全文檢索，提供流暢的寫作體驗與清晰的知識結構。
 
-## 🌟 核心优势
+## 🌟 核心優勢
 
-### 🔐 完全的数据控制权
-- **自托管部署**：所有数据仅存储在您自己的服务器中
-- **无第三方依赖**：不依赖任何云服务，确保完全的数据所有权
-- **隐私保护**：数据永远不会离开您的控制范围
+### 🔐 完全的資料控制權
+- **自託管部署**：所有資料僅儲存在您自己的伺服器中
+- **無第三方依賴**：不依賴任何雲服務，確保完全的資料所有權
+- **隱私保護**：資料永遠不會離開您的控制範圍
 
-### 📝 强大的笔记功能
-- **Markdown 编辑**：实时预览的 Markdown 编辑器，支持丰富的语法
-- **分类管理**：灵活的分类系统，构建清晰的知识结构
-- **标签系统**：多维度标签管理，快速定位相关笔记
-- **全文检索**：强大的搜索功能，快速找到所需内容
-- **数据导出**：笔记可导出为 Markdown 文件，避免数据锁定
+### 📝 強大的筆記功能
+- **Markdown 編輯**：實時預覽的 Markdown 編輯器，支援豐富的語法
+- **分類管理**：靈活的分類系統，構建清晰的知識結構
+- **標籤系統**：多維度標籤管理，快速定位相關筆記
+- **全文檢索**：強大的搜尋功能，快速找到所需內容
+- **資料匯出**：筆記可匯出為 Markdown 檔案，避免資料鎖定
 
-### 🛡️ 多层安全保护
-- **多种登录方式**：账号密码登录、GitHub OAuth 登录
-- **安全验证**：可选图片验证码或 Cloudflare Turnstile 防护
-- **锁屏保护**：支持锁屏功能，防止未授权访问
-- **访问控制**：适合在个人服务器或私有环境中长期使用
-- **操作审计**：完整的日志系统记录所有用户操作，提供安全审计功能
+### 🛡️ 多層安全保護
+- **多種登入方式**：帳號密碼登入、GitHub OAuth 登入
+- **安全驗證**：可選圖片驗證碼或 Cloudflare Turnstile 防護
+- **鎖屏保護**：支援鎖屏功能，防止未授權訪問
+- **訪問控制**：適合在個人伺服器或私有環境中長期使用
+- **操作審計**：完整的日誌系統記錄所有使用者操作，提供安全審計功能
 
-### 🔗 安全分享与备份
-- **只读分享**：支持笔记分享，可设置访问密码与过期时间控制
-- **WebDAV 备份**：与云存储或私有 NAS 集成，实现数据自动同步
-- **长期保存**：多种备份方式确保数据安全
+### 🔗 安全分享與備份
+- **只讀分享**：支援筆記分享，可設定訪問密碼與過期時間控制
+- **WebDAV 備份**：與雲端儲存或私有 NAS 整合，實現資料自動同步
+- **長期儲存**：多種備份方式確保資料安全
 
-### 🎨 优秀的用户体验
-- **响应式设计**：在桌面和移动设备上均可获得良好体验
-- **主题切换**：支持深色/浅色主题切换
-- **多语言支持**：中英文界面无缝切换
-- **键盘快捷键**：提高操作效率
-- **系统监控**：内置日志管理系统，支持操作记录查看和过滤
+### 🎨 優秀的使用者體驗
+- **響應式設計**：在桌面和移動裝置上均可獲得良好體驗
+- **主題切換**：支援深色/淺色主題切換
+- **多語言支援**：中英文介面無縫切換
+- **鍵盤快捷鍵**：提高操作效率
+- **系統監控**：內建日誌管理系統，支援操作記錄檢視和過濾
 
-## ⚙️ 配置说明
+## ⚙️ 配置說明
 
 ### 功能配置
 
-系统提供了丰富的配置选项，包括：
+系統提供了豐富的配置選項，包括：
 
-- **站点设置**：站点标题、Logo、图标等
-- **安全配置**：GitHub OAuth、验证码设置
-- **备份配置**：WebDAV 自动备份
-- **锁屏设置**：锁屏密码和超时时间
-- **日志管理**：操作日志记录、查看和清理设置
+- **站點設定**：站點標題、Logo、圖示等
+- **安全配置**：GitHub OAuth、驗證碼設定
+- **備份配置**：WebDAV 自動備份
+- **鎖屏設定**：鎖屏密碼和超時時間
+- **日誌管理**：操作日誌記錄、檢視和清理設定
 
-所有配置都可以通过 Web 界面进行管理，无需修改配置文件。
+所有配置都可以透過 Web 介面進行管理，無需修改配置檔案。
 
 ## 🚀 部署
 
 ### 本地部署
-支持 \`npm start\` 直接运行
+支援 \`npm start\` 直接執行
 
 ### Docker部署
-支持 \`docker\` 一键部署
+支援 \`docker\` 一鍵部署
 
 ### Cloudflare Pages部署
-无成本安全可用性高 \`Cloudflare Pages\` 部署
+無成本安全可用性高 \`Cloudflare Pages\` 部署
 
-## 🙏 致谢
+## 🙏 致謝
 
-感谢所有开源项目的贡献者，XA Note 使用了以下优秀的开源项目：
+感謝所有開源專案的貢獻者，Z Note 使用了以下優秀的開源專案：
 
-- React - 用户界面库
-- TypeScript - 类型安全的 JavaScript
-- Vite - 现代化的构建工具
-- Hono - 轻量级 Web 框架
-- Tailwind CSS - 实用优先的 CSS 框架
-- D1 - Cloudflare 分布式数据库
+- React - 使用者介面庫
+- TypeScript - 型別安全的 JavaScript
+- Vite - 現代化的構建工具
+- Hono - 輕量級 Web 框架
+- Tailwind CSS - 實用優先的 CSS 框架
+- D1 - Cloudflare 分散式資料庫
 
 ---
-**XA Note** - 轻量级自托管笔记系统，您的个人知识管理伙伴 🚀`
+**Z Note** - 輕量級自託管筆記系統，您的個人知識管理夥伴 🚀`
 
     await db.prepare('INSERT OR REPLACE INTO notes (id, title, content, tags, category_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)').run(
-      'xa-note-welcome', 'XA Note', noteContent, '', 'default', Date.now(), Date.now()
+      'z-note-welcome', 'Z Note', noteContent, '', 'default', Date.now(), Date.now()
     )
 
-    // 初始化默认分享
+    // 初始化預設分享
     await db.prepare('INSERT OR REPLACE INTO shares (id, note_id, password, expires_at, created_at) VALUES (?, ?, ?, ?, ?)').run(
-      'xa-note', 'xa-note-welcome', null, null, Date.now()
+      'z-note', 'z-note-welcome', null, null, Date.now()
     )
 
     return c.json({ success: true, message: 'Installation completed' })
@@ -618,7 +618,7 @@ XA Note 是一款**轻量级、可完全自托管的个人笔记系统**，由�
   }
 })
 
-// 登录接口
+// 登入介面
 app.post('/api/login', requireInstallation, async (c) => {
   const db = c.get('db') as any
   
@@ -629,22 +629,22 @@ app.post('/api/login', requireInstallation, async (c) => {
       return c.json({ ok: false, reason: 'missing_credentials' }, 400)
     }
 
-    // 获取验证设置
+    // 獲取驗證設定
     const enableCaptcha = await db.prepare('SELECT value FROM settings WHERE key = ?').get('login.enable_captcha') as any
     const enableTurnstile = await db.prepare('SELECT value FROM settings WHERE key = ?').get('login.enable_turnstile') as any
     const turnstileSecretKey = await db.prepare('SELECT value FROM settings WHERE key = ?').get('login.turnstile_secret_key') as any
 
-    // 验证码验证
+    // 驗證碼驗證
     if (enableCaptcha?.value === '1') {
       const savedCaptcha = getCookie(c, 'captcha')
       if (!captcha || !savedCaptcha || captcha.toLowerCase() !== savedCaptcha.toLowerCase()) {
         return c.json({ ok: false, error: 'captcha_invalid' }, 400)
       }
-      // 清除验证码cookie
+      // 清除驗證碼cookie
       deleteCookie(c, 'captcha', { path: '/' })
     }
 
-    // Turnstile验证
+    // Turnstile驗證
     if (enableTurnstile?.value === '1' && turnstileSecretKey?.value) {
       if (!turnstileToken) {
         return c.json({ ok: false, error: 'turnstile_required' }, 400)
@@ -666,7 +666,7 @@ app.post('/api/login', requireInstallation, async (c) => {
       }
     }
 
-    // 获取管理员信息
+    // 獲取管理員資訊
     const adminEmail = await db.prepare('SELECT value FROM settings WHERE key = ?').get('admin.email') as any
     const adminPasswordHash = await db.prepare('SELECT value FROM settings WHERE key = ?').get('admin.password_hash') as any
 
@@ -674,9 +674,9 @@ app.post('/api/login', requireInstallation, async (c) => {
       return c.json({ ok: false, reason: 'admin_not_configured' }, 500)
     }
 
-    // 验证邮箱
+    // 驗證郵箱
     if (email !== adminEmail.value) {
-      // 记录失败的登录尝试
+      // 記錄失敗的登入嘗試
       await logAction(db, {
         user_id: 'unknown',
         action: 'login',
@@ -688,10 +688,10 @@ app.post('/api/login', requireInstallation, async (c) => {
       return c.json({ ok: false, error: 'email_incorrect' }, 401)
     }
 
-    // 验证密码
+    // 驗證密碼
     const isValidPassword = await comparePassword(password, adminPasswordHash.value)
     if (!isValidPassword) {
-      // 记录失败的登录尝试
+      // 記錄失敗的登入嘗試
       await logAction(db, {
         user_id: adminEmail.value,
         action: 'login',
@@ -711,7 +711,7 @@ app.post('/api/login', requireInstallation, async (c) => {
     })
     const sessionId = generateSessionId()
 
-    // 设置cookies - Cloudflare Pages 使用 HTTPS
+    // 設定cookies - Cloudflare Pages 使用 HTTPS
     setCookie(c, 'auth_token', token, {
       httpOnly: true,
       secure: true,
@@ -729,7 +729,7 @@ app.post('/api/login', requireInstallation, async (c) => {
       domain: undefined
     })
 
-    // 记录成功的登录
+    // 記錄成功的登入
     await logAction(db, {
       user_id: adminEmail.value,
       action: 'login',
@@ -765,16 +765,16 @@ app.get('/api/auth/github', requireInstallation, async (c) => {
     const redirectUri = `${apiUrl}/api/auth/github/callback`
     const state = nanoid(32)
     
-    // 保存 state 和前端URL 到 cookie 用于验证和重定向
+    // 儲存 state 和前端URL 到 cookie 用於驗證和重定向
     setCookie(c, 'github_oauth_state', state, {
       httpOnly: true,
-      maxAge: 600, // 10 分钟
+      maxAge: 600, // 10 分鐘
       path: '/'
     })
     
     setCookie(c, 'github_oauth_frontend', frontendUrl, {
       httpOnly: true,
-      maxAge: 600, // 10 分钟
+      maxAge: 600, // 10 分鐘
       path: '/'
     })
 
@@ -815,7 +815,7 @@ app.get('/api/auth/github/callback', async (c) => {
       return c.redirect(`${frontendUrl}/login?error=oauth_config`)
     }
 
-    // 交换 access token
+    // 交換 access token
     const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
       method: 'POST',
       headers: {
@@ -835,7 +835,7 @@ app.get('/api/auth/github/callback', async (c) => {
       return c.redirect(`${frontendUrl}/login?error=oauth_token`)
     }
 
-    // 获取用户信息
+    // 獲取使用者資訊
     const userResponse = await fetch('https://api.github.com/user', {
       headers: {
         'Authorization': `Bearer ${tokenData.access_token}`,
@@ -845,7 +845,7 @@ app.get('/api/auth/github/callback', async (c) => {
 
     const userData = await userResponse.json()
 
-    // 获取用户邮箱
+    // 獲取使用者郵箱
     const emailResponse = await fetch('https://api.github.com/user/emails', {
       headers: {
         'Authorization': `Bearer ${tokenData.access_token}`,
@@ -856,7 +856,7 @@ app.get('/api/auth/github/callback', async (c) => {
     const emailData = await emailResponse.json()
     const primaryEmail = emailData.find((email: any) => email.primary)?.email || userData.email
 
-    // 检查是否是管理员邮箱
+    // 檢查是否是管理員郵箱
     const adminEmailRow = await db.prepare('SELECT value FROM settings WHERE key = ?').get('admin.email') as any
     if (!adminEmailRow || primaryEmail !== adminEmailRow.value) {
       return c.redirect(`${frontendUrl}/login?error=email_incorrect`)
@@ -882,11 +882,11 @@ app.get('/api/auth/github/callback', async (c) => {
       domain: undefined
     }
 
-    // 设置认证cookies
+    // 設定認證cookies
     setCookie(c, 'auth_token', token, cookieOptions)
     setCookie(c, 'session_id', sessionId, cookieOptions)
 
-    // 记录成功的GitHub登录
+    // 記錄成功的GitHub登入
     await logAction(db, {
       user_id: adminEmailRow.value,
       action: 'login',
@@ -906,7 +906,7 @@ app.get('/api/auth/github/callback', async (c) => {
   }
 })
 
-// 认证检查
+// 認證檢查
 app.get('/api/me', requireInstallation, async (c) => {
   const token = getCookie(c, 'auth_token')
   const sessionId = getCookie(c, 'session_id')
@@ -927,11 +927,11 @@ app.get('/api/me', requireInstallation, async (c) => {
   })
 })
 
-// 退出登录
+// 退出登入
 app.post('/api/logout', async (c) => {
   const db = c.get('db') as any
   
-  // 获取当前用户信息用于日志记录
+  // 獲取當前使用者資訊用於日誌記錄
   const token = getCookie(c, 'auth_token')
   let userId = 'unknown'
   
@@ -942,7 +942,7 @@ app.post('/api/logout', async (c) => {
     }
   }
   
-  // 记录登出操作
+  // 記錄登出操作
   await logAction(db, {
     user_id: userId,
     action: 'logout',
@@ -957,28 +957,28 @@ app.post('/api/logout', async (c) => {
   return c.json({ ok: true })
 })
 
-// 获取系统信息
+// 獲取系統資訊
 app.get('/api/system/info', async (c) => {
   const db = c.get('db') as any
   
   try {
-    // 获取数据库统计信息
+    // 獲取資料庫統計資訊
     const notesCount = await db.prepare('SELECT COUNT(*) as count FROM notes').get() as any
     const categoriesCount = await db.prepare('SELECT COUNT(*) as count FROM categories').get() as any
     
     return c.json({
-      name: 'XA Note',
+      name: 'Z Note',
       version: '1.0.0',
-      platform: 'cloudflare-pages', // 标识为Cloudflare Pages环境
-      database: 'd1', // 标识使用D1数据库
+      platform: 'cloudflare-pages', // 標識為Cloudflare Pages環境
+      database: 'd1', // 標識使用D1資料庫
       timestamp: new Date().toISOString(),
       notesCount: notesCount?.count || 0,
       categoriesCount: categoriesCount?.count || 0,
-      databaseSize: 'N/A' // D1不提供文件大小信息
+      databaseSize: 'N/A' // D1不提供檔案大小資訊
     })
   } catch (error) {
     return c.json({
-      name: 'XA Note',
+      name: 'Z Note',
       version: '1.0.0',
       platform: 'cloudflare-pages',
       database: 'd1',
@@ -990,7 +990,7 @@ app.get('/api/system/info', async (c) => {
   }
 })
 
-// 获取公共设置
+// 獲取公共設定
 app.get('/api/settings/public', async (c) => {
   const db = c.get('db') as any
   
@@ -1020,7 +1020,7 @@ app.get('/api/settings/public', async (c) => {
       'login.enable_turnstile': '0',
       'login.turnstile_site_key': '',
       'login.enable_github': '0',
-      'site.title': 'XA Note',
+      'site.title': 'Z Note',
       'site.logo': '/logo.png',
       'site.favicon': '/favicon.png',
       'site.avatar_prefix': 'https://www.gravatar.com/avatar/',
@@ -1035,7 +1035,7 @@ function getDefaultValue(key: string): string {
     'login.enable_turnstile': '0',
     'login.turnstile_site_key': '',
     'login.enable_github': '0',
-    'site.title': 'XA Note',
+    'site.title': 'Z Note',
     'site.logo': '/logo.png',
     'site.favicon': '/favicon.png',
     'site.avatar_prefix': 'https://www.gravatar.com/avatar/',
@@ -1044,7 +1044,7 @@ function getDefaultValue(key: string): string {
   return defaults[key] || ''
 }
 
-// 获取所有设置（需要认证）
+// 獲取所有設定（需要認證）
 app.get('/api/settings', requireAuth, async (c) => {
   const db = c.get('db') as any
   
@@ -1063,7 +1063,7 @@ app.get('/api/settings', requireAuth, async (c) => {
   }
 })
 
-// 更新设置（需要认证）
+// 更新設定（需要認證）
 app.put('/api/settings', requireAuth, async (c) => {
   const db = c.get('db') as any
   const user = c.get('user')
@@ -1081,7 +1081,7 @@ app.put('/api/settings', requireAuth, async (c) => {
     await db.prepare('INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, ?)').run(key, String(value), Date.now())
   }
 
-  // 记录设置更新
+  // 記錄設定更新
   await logAction(db, {
     user_id: user.email || user.userId,
     action: 'update_settings',
@@ -1094,7 +1094,7 @@ app.put('/api/settings', requireAuth, async (c) => {
   return c.json({ ok: true })
 })
 
-// 更新设置（POST方法，与PUT相同）
+// 更新設定（POST方法，與PUT相同）
 app.post('/api/settings', requireAuth, async (c) => {
   const db = c.get('db') as any
   const user = c.get('user')
@@ -1112,7 +1112,7 @@ app.post('/api/settings', requireAuth, async (c) => {
     await db.prepare('INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, ?)').run(key, String(value), Date.now())
   }
 
-  // 记录设置更新
+  // 記錄設定更新
   await logAction(db, {
     user_id: user.email || user.userId,
     action: 'update_settings',
@@ -1141,7 +1141,7 @@ app.post('/api/categories', requireAuth, async (c) => {
   const id = nanoid()
   await db.prepare('INSERT INTO categories (id, name, created_at) VALUES (?, ?, ?)').run(id, name, Date.now())
 
-  // 记录分类创建
+  // 記錄分類建立
   await logAction(db, {
     user_id: user.email || user.userId,
     action: 'create_category',
@@ -1164,12 +1164,12 @@ app.put('/api/categories/:id', requireAuth, async (c) => {
   if (!id || !name) return c.json({ error: 'BAD_REQUEST' }, 400)
   if (id === 'default') return c.json({ error: 'CANNOT_EDIT_DEFAULT' }, 400)
 
-  // 获取旧名称用于日志
+  // 獲取舊名稱用於日誌
   const oldCategory = await db.prepare('SELECT * FROM categories WHERE id=?').get(id) as any
 
   await db.prepare('UPDATE categories SET name = ? WHERE id = ?').run(name, id)
 
-  // 记录分类更新
+  // 記錄分類更新
   await logAction(db, {
     user_id: user.email || user.userId,
     action: 'update_category',
@@ -1190,16 +1190,16 @@ app.delete('/api/categories/:id', requireAuth, async (c) => {
   if (!id) return c.json({ error: 'BAD_REQUEST' }, 400)
   if (id === 'default') return c.json({ error: 'CANNOT_DELETE_DEFAULT' }, 400)
 
-  // 获取分类信息用于日志
+  // 獲取分類資訊用於日誌
   const category = await db.prepare('SELECT * FROM categories WHERE id=?').get(id) as any
 
-  // 将该分类下的笔记转移到默认分类
+  // 將該分類下的筆記轉移到預設分類
   await db.prepare('UPDATE notes SET category_id = ? WHERE category_id = ?').run('default', id)
 
-  // 删除分类
+  // 刪除分類
   await db.prepare('DELETE FROM categories WHERE id = ?').run(id)
 
-  // 记录分类删除
+  // 記錄分類刪除
   if (category) {
     await logAction(db, {
       user_id: user.email || user.userId,
@@ -1244,7 +1244,7 @@ app.post('/api/notes', requireAuth, async (c) => {
     Date.now()
   )
 
-  // 记录笔记创建
+  // 記錄筆記建立
   await logAction(db, {
     user_id: user.email || user.userId,
     action: 'create_note',
@@ -1292,11 +1292,11 @@ app.delete('/api/notes/:id', requireAuth, async (c) => {
   const id = c.req.param('id')
   if (!id) return c.json({ error: 'BAD_REQUEST' }, 400)
 
-  // 获取笔记信息
+  // 獲取筆記資訊
   const note = await db.prepare('SELECT * FROM notes WHERE id=?').get(id) as any
   if (!note) return c.json({ error: 'NOT_FOUND' }, 404)
 
-  // 移动到回收站
+  // 移動到回收站
   await db.prepare(`
     INSERT INTO trash (id, title, content, tags, category_id, created_at, updated_at, deleted_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -1311,10 +1311,10 @@ app.delete('/api/notes/:id', requireAuth, async (c) => {
     Date.now()
   )
 
-  // 从笔记表中删除
+  // 從筆記表中刪除
   await db.prepare('DELETE FROM notes WHERE id=?').run(id)
   
-  // 记录笔记删除
+  // 記錄筆記刪除
   await logAction(db, {
     user_id: user.email || user.userId,
     action: 'delete_note',
@@ -1370,7 +1370,7 @@ app.post('/api/share/:id', requireAuth, async (c) => {
     Date.now()
   )
 
-  // 记录分享创建
+  // 記錄分享建立
   await logAction(db, {
     user_id: user.email || user.userId,
     action: 'create_share',
@@ -1404,12 +1404,12 @@ app.delete('/api/shares/:id', requireAuth, async (c) => {
   const id = c.req.param('id')
   if (!id) return c.json({ error: 'BAD_REQUEST' }, 400)
 
-  // 获取分享信息用于日志
+  // 獲取分享資訊用於日誌
   const share = await db.prepare('SELECT * FROM shares WHERE id=?').get(id) as any
 
   await db.prepare('DELETE FROM shares WHERE id=?').run(id)
 
-  // 记录分享删除
+  // 記錄分享刪除
   if (share) {
     await logAction(db, {
       user_id: user.email || user.userId,
@@ -1448,7 +1448,7 @@ app.post('/api/share/:code/view', async (c) => {
 
   const note = await db.prepare('SELECT * FROM notes WHERE id=?').get(share.note_id) as any
 
-  // 记录分享查看（匿名用户）
+  // 記錄分享檢視（匿名使用者）
   await logAction(db, {
     user_id: 'anonymous',
     action: 'view_share',
@@ -1553,7 +1553,7 @@ app.post('/api/trash/:id/restore', requireAuth, async (c) => {
   // Remove from trash
   await db.prepare('DELETE FROM trash WHERE id=?').run(id)
   
-  // 记录笔记恢复
+  // 記錄筆記恢復
   await logAction(db, {
     user_id: user.email || user.userId,
     action: 'restore_note',
@@ -1573,13 +1573,13 @@ app.delete('/api/trash/:id', requireAuth, async (c) => {
   const id = c.req.param('id')
   if (!id) return c.json({ error: 'BAD_REQUEST' }, 400)
 
-  // 获取笔记信息用于日志
+  // 獲取筆記資訊用於日誌
   const trashNote = await db.prepare('SELECT * FROM trash WHERE id=?').get(id) as any
 
   // Permanently delete
   await db.prepare('DELETE FROM trash WHERE id=?').run(id)
 
-  // 记录永久删除
+  // 記錄永久刪除
   if (trashNote) {
     await logAction(db, {
       user_id: user.email || user.userId,
@@ -1624,7 +1624,7 @@ app.get('/sitemap.xml', (c) => {
         <lastmod>${currentDate}</lastmod>
         <changefreq>daily</changefreq>
         <priority>1.0</priority>
-        <xhtml:link rel="alternate" hreflang="zh-CN" href="${baseUrl}/" />
+        <xhtml:link rel="alternate" hreflang="zh-TW" href="${baseUrl}/" />
         <xhtml:link rel="alternate" hreflang="en" href="${baseUrl}/?lang=en" />
     </url>
     
@@ -1634,7 +1634,7 @@ app.get('/sitemap.xml', (c) => {
         <lastmod>${currentDate}</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
-        <xhtml:link rel="alternate" hreflang="zh-CN" href="${baseUrl}/login" />
+        <xhtml:link rel="alternate" hreflang="zh-TW" href="${baseUrl}/login" />
         <xhtml:link rel="alternate" hreflang="en" href="${baseUrl}/login?lang=en" />
     </url>
     
@@ -1644,7 +1644,7 @@ app.get('/sitemap.xml', (c) => {
         <lastmod>${currentDate}</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>
-        <xhtml:link rel="alternate" hreflang="zh-CN" href="${baseUrl}/features" />
+        <xhtml:link rel="alternate" hreflang="zh-TW" href="${baseUrl}/features" />
         <xhtml:link rel="alternate" hreflang="en" href="${baseUrl}/features?lang=en" />
     </url>
     
@@ -1654,7 +1654,7 @@ app.get('/sitemap.xml', (c) => {
         <lastmod>${currentDate}</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
-        <xhtml:link rel="alternate" hreflang="zh-CN" href="${baseUrl}/help" />
+        <xhtml:link rel="alternate" hreflang="zh-TW" href="${baseUrl}/help" />
         <xhtml:link rel="alternate" hreflang="en" href="${baseUrl}/help?lang=en" />
     </url>
     
@@ -1664,7 +1664,7 @@ app.get('/sitemap.xml', (c) => {
         <lastmod>${currentDate}</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.5</priority>
-        <xhtml:link rel="alternate" hreflang="zh-CN" href="${baseUrl}/privacy" />
+        <xhtml:link rel="alternate" hreflang="zh-TW" href="${baseUrl}/privacy" />
         <xhtml:link rel="alternate" hreflang="en" href="${baseUrl}/privacy?lang=en" />
     </url>
 
@@ -1674,7 +1674,7 @@ app.get('/sitemap.xml', (c) => {
         <lastmod>${currentDate}</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.5</priority>
-        <xhtml:link rel="alternate" hreflang="zh-CN" href="${baseUrl}/copyright" />
+        <xhtml:link rel="alternate" hreflang="zh-TW" href="${baseUrl}/copyright" />
         <xhtml:link rel="alternate" hreflang="en" href="${baseUrl}/copyright?lang=en" />
     </url>
     
